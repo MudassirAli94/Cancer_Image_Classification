@@ -162,9 +162,9 @@ imgbt.shape
 
 # One way to graph the images is to use the glob functionimport globimages = sorted(glob.glob("cancer image 1/*.jpg"))imgbl = []
 # for i in images:
-   # imgbl.append(io.imread(i))images = pd.Series(imgbl)train['images'] = imagestrain.head()
+    # imgbl.append(io.imread(i))images = pd.Series(imgbl)train['images'] = imagestrain.head()
 
-# Another way is to use a for loop with the append function on an empty list
+ # Another way is to use a for loop with the append function on an empty list
 # In[16]:
 
 
@@ -255,7 +255,7 @@ X_test = np.array(X_test)
 y_train = np_utils.to_categorical(y_train, 7)
 y_test = np_utils.to_categorical(y_test , 7)
 
-# Using Keras on the proportionally split data
+Using Keras on the proportionally split data
 # In[27]:
 
 
@@ -277,8 +277,8 @@ model.compile(optimizer = 'adam' , loss = 'categorical_crossentropy' , metrics =
 model.fit(X_train , y_train, batch_size = 30 ,  epochs = 3, validation_data = (X_test , y_test) , validation_split=0.2,
           verbose = 2 , callbacks=[early_stopping_monitor])
 
-# Using TensorFlow on our proportionally split data
-# In[29]:
+Using TensorFlow on our proportionally split data
+# In[52]:
 
 
 early_stopping_monitor = EarlyStopping(monitor='val_loss', patience=2, verbose=1, mode='auto')
@@ -288,7 +288,7 @@ for n in range (1,200):
       tf.keras.layers.Conv2D(32,(3,3) , input_shape = (75,100,3) , activation = tf.nn.relu),
       tf.keras.layers.MaxPooling2D(pool_size = (2,2)),
       tf.keras.layers.Flatten(),
-      tf.keras.layers.Dense(n, activation=tf.nn.relu),
+      tf.keras.layers.Dense(200, activation=tf.nn.relu),
       tf.keras.layers.Dense(7 , activation=tf.nn.sigmoid)
     ])
 model_tf.compile(optimizer='adam',
@@ -298,26 +298,25 @@ model_tf.compile(optimizer='adam',
 model_tf.fit(X_train , y_train, batch_size = 30 ,  epochs = 20, validation_data = (X_test , y_test) , validation_split=0.2,
           verbose = 2 , callbacks=[early_stopping_monitor])
 
-# As you can see tensorflow gives me the best accuracy at 74% accuracy.
-# To increase the accuracy I am going to see if decreasing the train data and increasing the test data will work
+#As you can see tensorflow gives me the best accuracy at about 80% accuracy.
+#To increase the accuracy I am going to see if increasing the train data and decreasing the test data will work
 # In[30]:
 
 
-train_1 = cancer.sort_values('image_id')[0:2000]
-test_1 = cancer.sort_values('image_id')[2000:]
+train_1 = cancer.sort_values('image_id')[0:7000]
+test_1 = cancer.sort_values('image_id')[7000:]
 
 
 # In[31]:
 
 
 pixel_train_1 = []
-for n in range(0,len(train_1)):
+for n in range(0,5000):
     pixel_train_1.append(io.imread('cancer image 1/' + str(train_1.image_id.iloc[n]) + '.jpg'))
-    
+for n in range(5000,len(train_1)):
+    pixel_train_1.append(io.imread('cancer image 2/' + str(train_1.image_id.iloc[n]) + '.jpg'))
 pixel_test_1 = []
-for n in range(0,3000):
-    pixel_test_1.append(io.imread('cancer image 1/' + str(test_1.image_id.iloc[n]) + '.jpg'))
-for n in range(3000,len(test_1)):    
+for n in range(0,len(test_1)):    
     pixel_test_1.append(io.imread('cancer image 2/' + str(test_1.image_id.iloc[n]) + '.jpg'))
 
 
@@ -369,37 +368,49 @@ y_train_1 = np_utils.to_categorical(y_train_1, 7)
 y_test_1 = np_utils.to_categorical(y_test_1 , 7)
 
 
-# In[37]:
+# In[48]:
 
-# Keraas on the unproportional dataset
 
-early_stopping_monitor = EarlyStopping(monitor='val_loss', patience=2, verbose=1, mode='auto')
+early_stopping_monitor = EarlyStopping(monitor='val_loss', patience=6, verbose=1, mode='auto')
 model = Sequential()
-model.add(Conv2D(32,(3,3) , input_shape = (75,100,3) , activation = 'relu'))
+model.add(Conv2D(100,(3,3) , input_shape = (75,100,3) , activation = 'relu'))
+model.add(Conv2D(100, (3,3) , activation = 'relu'))
 model.add(MaxPooling2D(pool_size = (2,2)))
+
+model.add(Conv2D(100, (3,3) , activation = 'relu'))
+model.add(Conv2D(100, (3,3) , activation = 'relu'))
+model.add(MaxPooling2D(pool_size = (2,2)))
+
+model.add(Conv2D(100, (3,3) , activation = 'relu'))
+model.add(Conv2D(100, (3,3) , activation = 'relu'))
+model.add(MaxPooling2D(pool_size = (2,2)))
+
 model.add(Flatten())
 model.add(Dense(units = 128 , activation = 'relu'))
 model.add(Dense(units = 7 , activation = 'sigmoid'))
 model.compile(optimizer = 'adam' , loss = 'categorical_crossentropy' , metrics = ['accuracy'])
 
 
-# In[38]:
+# In[49]:
 
 
 model.fit(X_train_1 , y_train_1, batch_size = 30 ,  epochs = 20, validation_data = (X_test_1 , y_test_1) , validation_split=0.2,
           verbose = 2 , callbacks=[early_stopping_monitor])
 
-# Tensor flow on the unproportional dataset
-# In[39]:
+
+# In[53]:
 
 
-early_stopping_monitor = EarlyStopping(monitor='val_loss', patience=2, verbose=1, mode='auto')
+early_stopping_monitor = EarlyStopping(monitor='val_loss', patience=6, verbose=1, mode='auto')
 
 model = tf.keras.models.Sequential([
   tf.keras.layers.Conv2D(32,(3,3) , input_shape = (75,100,3) , activation = tf.nn.relu),
   tf.keras.layers.MaxPooling2D(pool_size = (2,2)),
+  tf.keras.layers.MaxPooling2D(pool_size = (2,2)),
+  tf.keras.layers.MaxPooling2D(pool_size = (2,2)),
   tf.keras.layers.Flatten(),
-  tf.keras.layers.Dense(128, activation=tf.nn.relu),
+  tf.keras.layers.Dense(200, activation=tf.nn.relu),
+  tf.keras.layers.Dense(200 , activation = tf.nn.relu),
   tf.keras.layers.Dense(200 , activation = tf.nn.relu),
   tf.keras.layers.Dense(7 , activation=tf.nn.sigmoid)
 ])
@@ -410,5 +421,6 @@ model.compile(optimizer='adam',
 model.fit(X_train_1 , y_train_1, batch_size = 30 ,  epochs = 20, validation_data = (X_test_1 , y_test_1) , validation_split=0.2,
           verbose = 2 , callbacks=[early_stopping_monitor])
 
-# The best accuracy I obtained was via tensorflow when the data was on our unproportional split for train and test data.
-# I could tune the parameters of the neural networks however my machine does not have the necessary power to run these tuned up parameters in an appropriate time.
+#The best accuracy I obtained was via keras when the data was on our unproportional split for train and test data.
+#I could tune the parameters of the neural networks however my machine does not have the necessary power to run these tuned up parameters 
+#in an appropriate time.
